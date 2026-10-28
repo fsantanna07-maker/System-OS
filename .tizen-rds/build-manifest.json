@@ -1,0 +1,24 @@
+{
+  "projectDir": "c:\\system OS",
+  "timestamp": "2026-10-27T22:13:47.872Z",
+  "hashAlgorithm": "xxh3-128",
+  "input": {
+    "config.xml": {
+      "hash": "889288d7996179d7c8ac5c5367bd5405"
+    },
+    "index.html": {
+      "hash": "d8cb342e8918c483957c6285f6db3380"
+    }
+  },
+  "output": {
+    "Debug/projects/system OS/.vscode/settings.json": {
+      "hash": "a5857c53f174e19c23444b15af439ae1"
+    },
+    "Debug/projects/system OS/config.xml": {
+      "hash": "889288d7996179d7c8ac5c5367bd5405"
+    },
+    "Debug/projects/system OS/index.html": {
+      "hash": "d8cb342e8918c483957c6285f6db3380"
+    }
+  }
+}

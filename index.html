@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agendamentos de OS | Prudente Seg Soluções - SIMPAR</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0B1220; --painel:#121B2E; --painel2:#182440; --borda:#243352;
+  --texto:#E7EDF7; --texto2:#9DB0CC; --verde:#00A859; --verde2:#00CF6B;
+  --amarelo:#F9A825; --azul:#2EA3F2; --vermelho:#F87070; --roxo:#B90E80;
+}
+*{box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',Tahoma,sans-serif;}
+body{background:var(--bg); color:var(--texto); min-height:100vh;}
+
+/* ---------- LOGIN ---------- */
+#telaLogin{display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px;}
+.login-box{background:var(--painel); border:1px solid var(--borda); border-radius:16px; padding:36px; width:min(420px,100%);}
+.login-box .logo{text-align:center; margin-bottom:22px;}
+.login-box h1{font-size:17px; margin-top:12px;}
+.login-box .sub{font-size:11.5px; color:var(--texto2); margin-top:5px; line-height:1.5;}
+.login-box label{font-size:11px; color:var(--texto2); display:block; margin:14px 0 5px; font-weight:600; text-transform:uppercase; letter-spacing:.4px;}
+.login-box input{width:100%; background:var(--painel2); border:1px solid var(--borda); color:var(--texto); border-radius:9px; padding:11px 13px; font-size:14px;}
+.login-box input:focus{outline:2px solid var(--verde);}
+#erroLogin{color:var(--vermelho); font-size:12px; margin-top:12px; min-height:16px;}
+.btn{border:1px solid var(--borda); background:var(--painel2); color:var(--texto); border-radius:8px; padding:9px 14px; font-size:12.5px; cursor:pointer; transition:.15s;}
+.btn:hover{border-color:var(--verde);}
+.btn-p{background:var(--verde); color:#04110B; font-weight:700; border:none;}
+.btn-p:hover{background:var(--verde2);}
+.btn-d{background:#3A1A24; color:var(--vermelho); border-color:#5A2A38;}
+.login-box .btn-p{width:100%; padding:12px; margin-top:20px; font-size:14px;}
+
+/* ---------- APP ---------- */
+#app{display:none;}
+header{background:linear-gradient(120deg,#0E2B1E,#00A85922); border-bottom:1px solid var(--borda); padding:14px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+header h1{font-size:16px;}
+header h1 b{color:var(--verde2);}
+header .sub{font-size:11px; color:var(--texto2); margin-top:3px;}
+.header-dir{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+#statusSync{font-size:11px; color:var(--texto2); background:var(--painel); border:1px solid var(--borda); border-radius:20px; padding:6px 12px;}
+#statusSync.online{border-color:var(--verde); color:var(--verde2);}
+#statusSync.offline{border-color:#5A2A38; color:var(--vermelho);}
+.usuario-tag{font-size:11.5px; color:var(--texto2);}
+.usuario-tag b{color:var(--verde2);}
+nav{display:flex; gap:2px; padding:0 16px; background:var(--painel); border-bottom:1px solid var(--borda); overflow-x:auto; flex-wrap:wrap;}
+nav button{background:none; border:none; color:var(--texto2); padding:12px 16px; font-size:13px; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap;}
+nav button.ativo{color:var(--verde2); font-weight:600; border-bottom-color:var(--verde);}
+main{padding:20px; max-width:1480px; margin:0 auto;}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;}
+.kpi{background:var(--painel); border:1px solid var(--borda); border-radius:12px; padding:14px 16px;}
+.kpi .lbl{font-size:10.5px; font-weight:700; color:var(--texto2); text-transform:uppercase; letter-spacing:.5px;}
+.kpi .val{font-size:26px; font-weight:700; margin-top:4px;}
+.card{background:var(--painel); border:1px solid var(--borda); border-radius:12px; padding:16px; margin-top:14px;}
+.card h3{font-size:13.5px; color:var(--verde2); margin-bottom:12px;}
+.barra-linha{display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:12px;}
+.barra-linha .nome{width:190px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.barra-linha .trilha{flex:1; height:14px; background:var(--painel2); border-radius:7px; overflow:hidden;}
+.barra-linha .fill{display:block; height:100%; transition:width .6s; background:linear-gradient(90deg,var(--verde),var(--verde2)); border-radius:7px;}
+.barra-linha .num{width:40px; text-align:right; color:var(--texto2);}
+.barra-linha .stack{flex:1;}
+.stack{display:flex; height:22px; background:var(--painel2); border-radius:7px; overflow:hidden;}
+.stack span{display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#04110B; overflow:hidden;}
+.legenda{display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--texto2); margin-bottom:14px;}
+.legenda i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px;}
+.equipes-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; margin-top:14px;}
+.equipes-grid .card{margin-top:0;}
+.eq-topo{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;}
+.eq-topo h3{margin:0;}
+.eq-total{font-size:26px; font-weight:700; color:var(--verde2);}
+.eq-total small{font-size:11px; color:var(--texto2); font-weight:600;}
+.mini-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+.mini{background:var(--painel2); border-radius:8px; padding:8px 10px;}
+.mini .l{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--texto2); min-height:24px;}
+.mini .v{font-size:22px; font-weight:700; margin-top:2px;}
+.rot-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+.rot-tit{font-size:12.5px; font-weight:700; color:var(--texto);}
+.prog{flex:1; min-width:120px; height:4px; background:var(--painel2); border-radius:2px; overflow:hidden;}
+.prog i{display:block; height:100%; width:0; background:var(--verde); animation:prog 30s linear forwards;}
+@keyframes prog{to{width:100%;}}
+.dots{display:flex; gap:6px;}
+.dots b{width:9px; height:9px; border-radius:50%; background:var(--painel2); border:1px solid var(--borda);}
+.dots b.on{background:var(--verde); border-color:var(--verde);}
+.filtros{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+.filtros input,.filtros select{background:var(--painel2); border:1px solid var(--borda); color:var(--texto); border-radius:8px; padding:9px 12px; font-size:13px;}
+.filtros input{min-width:260px; flex:1;}
+.contador{font-size:12px; color:var(--texto2); margin-left:auto;}
+table{width:100%; border-collapse:collapse; font-size:12px;}
+th{background:var(--painel2); color:var(--texto2); text-align:left; padding:9px 10px; font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; white-space:nowrap;}
+td{border-bottom:1px solid var(--borda); padding:8px 10px; vertical-align:top;}
+tbody tr:hover{background:var(--painel2);}
+.pill{display:inline-block; border-radius:12px; padding:3px 10px; font-size:10.5px; font-weight:700;}
+.p-ag{background:#12335A; color:#7EC2F2;}
+.p-agen{background:#0F3D2A; color:var(--verde2);}
+.p-atend{background:#3D330F; color:#FBD35D;}
+.p-concl{background:#2A2A3D; color:#B9B9D9;}
+.p-canc{background:#3A1A24; color:var(--vermelho);}
+.p-paus{background:#3D2A0F; color:#F9A825;}
+.p-gar{background:#0F3A3D; color:#5FE0D6;}
+.tbl-acao{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+.edit-info{font-size:10.5px; color:var(--texto2);}
+.edit-info b{color:var(--azul);}
+.pag{display:flex; gap:6px; align-items:center; margin-top:12px; font-size:12px; color:var(--texto2); flex-wrap:wrap;}
+.pag button{background:var(--painel2); border:1px solid var(--borda); color:var(--texto); border-radius:6px; padding:5px 10px; cursor:pointer;}
+.pag button.ativo{background:var(--verde); color:#04110B; font-weight:700; border-color:var(--verde);}
+.modal-fundo{position:fixed; inset:0; background:rgba(4,8,16,.75); display:none; align-items:flex-start; justify-content:center; z-index:50; overflow-y:auto; padding:30px 14px;}
+.modal{background:var(--painel); border:1px solid var(--borda); border-radius:14px; padding:22px; width:min(720px,100%);}
+.modal h3{color:var(--verde2); font-size:16px; margin-bottom:16px;}
+.form-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+.form-grid .full{grid-column:1/-1;}
+.form-grid label{font-size:11px; color:var(--texto2); display:block; margin-bottom:4px; font-weight:600;}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%; background:var(--painel2); border:1px solid var(--borda); color:var(--texto); border-radius:8px; padding:9px 10px; font-size:13px;}
+.modal .rodape{display:flex; gap:10px; justify-content:flex-end; margin-top:18px;}
+#toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--verde); color:#04110B; font-weight:700; padding:11px 20px; border-radius:10px; display:none; z-index:99; font-size:13px;}
+.nota{font-size:11.5px; color:var(--texto2); font-style:italic; margin-top:12px; line-height:1.5;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="telaLogin">
+  <div class="login-box">
+    <div class="logo" style="font-size:34px">🛠️</div>
+    <h1>AGENDAMENTOS DE OS</h1>
+    <div class="sub">Prudente Seg Soluções • SIMPAR<br>Sistema compartilhado da equipe — as alterações de todos ficam visíveis aqui</div>
+    <label>Seu nome</label>
+    <input id="inpNome" placeholder="Digite seu nome" autocomplete="off">
+    <label>Código de acesso da equipe</label>
+    <input id="inpPin" type="password" placeholder="Código fornecido pela coordenação" onkeydown="if(event.key==='Enter')entrar()">
+    <div id="erroLogin"></div>
+    <button class="btn btn-p" onclick="entrar()">ENTRAR</button>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+<header>
+  <div>
+    <h1>🛠️ AGENDAMENTOS DE OS <b>| PRUDENTE SEG • SIMPAR</b></h1>
+    <div class="sub" id="subSync">Banco de dados compartilhado — sincronizado com a equipe</div>
+  </div>
+  <div class="header-dir">
+    <span id="statusSync">…</span>
+    <button class="btn" onclick="carregar()">↻ Atualizar</button>
+    <span class="usuario-tag">👤 <b id="tagUser"></b></span>
+    <button class="btn btn-d" onclick="sair()">Sair</button>
+  </div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+</div>
+
+<div class="modal-fundo" id="modalFundo" onclick="if(event.target===this)fecharModal()">
+  <div class="modal" id="modalCorpo"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+const API = "https://koda-2223fac1.base44.app/functions/chamadosApi";
+const PIN_SALVO = "PRUDENTE2026";
+const FRENTES = ["Controle de Acesso", "Equipe Externa", "RJ / MG / Interior SP", "Garantia", "Pausado", "SP-Capital"];
+const TIPOS_OS = ["MANUTENÇÃO CORRETIVA","MANUTENÇÃO PREVENTIVA","INSTALAÇÃO","SOPORTE TÉCNICO","VISTORIA","CONFIGURAÇÃO DE SERVIÇOS","OUTRO"];
+const STATUS = ["Aguardando Agendamento", "Agendado", "Em Atendimento", "Concluído", "Cancelado", "Pausado", "Garantia"];
+const CLASSE_STATUS = {"Aguardando Agendamento":"p-ag","Agendado":"p-agen","Em Atendimento":"p-atend","Concluído":"p-concl","Cancelado":"p-canc","Pausado":"p-paus","Garantia":"p-gar"};
+const LS = "agendamentos_os_sessao_v1";
+
+let sessao = null, dados = [], tabAtual = "dash", pag = 1, PS = 25, importando = false, toastT = null;
+let filtros = {q:"", frente:"", status:""};
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function norm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(toastT); toastT=setTimeout(()=>t.style.display="none",2200); }
+
+/* ---------- DADOS INICIAIS (planilha Dados_agendamentos.xlsx: abas Garantia, Pausado, SP-Capital) ---------- */
+const DADOS_INICIAIS = [{"codigo":"1353118876","cliente":"0187 - JSL CABO DE SANTO AGOSTINHO","frente":"Garantia","tipoOs":"VISTORIA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353305614","cliente":"0275 - MOV. MARINA DA GLORIA PATIO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353309504","cliente":"0446 - VAMOS FENDT SINOP MT","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353309617","cliente":"0042 - JSL PORTO SECO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353309822","cliente":"0447 - VAMOS SINOP /FENDT AREA COMUM","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353283426","cliente":"0145 - MOV SN /RAC LOMAS VALENTINA BELEM","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310334","cliente":"0166 - MOVIDA SN SARANDI","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310338","cliente":"0445 - VAMOS MUNDOS DOS CAMINHÕES SINOP -MT","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310410","cliente":"0134 - Vamos São José Dos Espinhais Pátio Novo","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310585","cliente":"0290 - MOVIDA RAC/SEMINOVOS BH PRADO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310748","cliente":"0129 - MOVIDA SN W.SOARES FORTALEZA","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353313157","cliente":"0284 - MOVIDA REPUBLICA DO LIBANO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353310303","cliente":"0091 - MOV.S/N CUIABA -VARZEA GRANDE","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353312217","cliente":"0286 - CS BRASIL GOIANIA","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353197415","cliente":"0321 - MOVIDA RAC AEROPORTO MANAUS BOX","frente":"Garantia","tipoOs":"CONFIGURAÇÃO DE SERVIÇOS","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353348393","cliente":"CFTV SERRA - CFTV-JSL SERRA ESPÍRITO SANTO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353350750","cliente":"0080 - MOVIDA FOZ DO IGUAÇU","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353325897","cliente":"0126 - MOVIDA RAC/SN CUIABA","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353330885","cliente":"0007 - CS FROTAS SIMÕES FILHO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353331833","cliente":"0211 - MOVIDA RAC AEROPORTO RECIFE","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353354327","cliente":"0030 - MOVIDA RAC ESPIRITO SANTO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353331933","cliente":"0167 - MOVIDA SEMINOVOS CAXIAS DO SUL I","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353327961","cliente":"0245 - MOVIDA RAC AEROPORTO PETROLINA","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353372938","cliente":"0035 - MOVIDA SN CURITIBA PAROLIN","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353378368","cliente":"0215 - MOVIDA RAC AEROPORTO FORTALEZA","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353355237","cliente":"0072 - MOV SN SIMÕES FILHO PATIO","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353361639","cliente":"0267 - MOVIDA RAC AEROPORTO TERESINA PAIUI","frente":"Garantia","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Garantia","tecnico":"","observacoes":""},{"codigo":"1353317416","cliente":"CFTV- Jsl alagoinha - CFTV- Jsl alagoinha","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353328329","cliente":"0111 - MOVIDA RAC AEROP SÃO JOSE DO RIO PRETO 3","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353312651","cliente":"0424 - Vamos HM Uberlandia","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353330845","cliente":"0064 - CS BRASIL GARAGEM MOGI - CONFERENCIA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353352878","cliente":"0248 - MOVIDA RAC PORTO SEGURO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353342917","cliente":"0225 - MOVIDA S/N RECIFE AEROPORTO PATIO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353312243","cliente":"0341 - MOVIDA RAC PREPARAÇÃO RJ","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353329354","cliente":"0119 - MOV SN GOIÂNIA MUTIRÃO GALPÕES DVR 1","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353316523","cliente":"0441 - VAMOS LONDRINA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353312170","cliente":"0157 - MOVIDA RAC SHOPPING BANGU","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353361379","cliente":"0417 - MOVIDA RAC SN CAMPO GRANDE MS","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353355231","cliente":"0045 - MOVIDA SN RECIFE IMBIRIBEIRA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353356544","cliente":"0376 - Mov. rac. shopping da ilha são Luiz","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353368603","cliente":"0028 - MOVIDA SN BAHIA LAURO DE FREITAS","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353370130","cliente":"0089 - MOVIDA SN/RAC JOINVILE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353371006","cliente":"0278 - MOVIDA RAC NATAL (PONTA NEGRA)","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353372139","cliente":"0155 - MOVIDA SN CAMPINAS","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353363399","cliente":"0393 - MOVIDA RAC RIO CLARO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353378219","cliente":"0115 - MOVIDA RAC AEROPORTO BRASILIA (24hrs)","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353372133","cliente":"0410 - MOV RAC GOYTACAZES","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353381180","cliente":"0095 - TOYOTA QUALITY GUARULHOS -AV ANIELLO PRATICI,350 - PORTARIA REMOTA QR CODE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353357621","cliente":"0125 - CENTRO DE MANUTENÇÃO GALEÃO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353366813","cliente":"0377 - ORIGINAL GUARULHOS CONCESSIONARIA PATIO EXTERNO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353330753","cliente":"0022 - JSL FREI DAMIÃO SÃO BERNARDO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353319776","cliente":"0094 - ORIGINAL SAO BERNADO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353357529","cliente":"0486 - ORIGINAL LEAP MOTOR- CALHAU SÃO LUÍS MA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353378113","cliente":"0069 - VAMOS PESADOS SN SÃO JOSE DOS PINHAIS","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353386553","cliente":"0228 - CS BRASIL FORTALEZA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353386539","cliente":"0159 - CS FROTAS RECIFE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353385493","cliente":"0168 - MOVIDA SEMINOVOS LONDRINA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353355234","cliente":"0051 - MOVIDA SN FORTALEZA - SANTOS DUMONT","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353371610","cliente":"0380 - VAMOS SN RECIFE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353380628","cliente":"0276 - MOVIDA RAC /SN BARRA DA TIJUCA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353364663","cliente":"0320 - MOVIDA RAC/SN NOVA IGUAÇU","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353388664","cliente":"0415 - MOVIDA RAC ARARAQUARA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353389030","cliente":"0299 - MOV.RAC AEROPORTO CONFINS","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353386294","cliente":"0407 - Mov rac São carlos","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353388709","cliente":"0345 - MOVIDA RSN BARRA 2 ( AV . DAS AMERICA)","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353388771","cliente":"0131 - LEXUS ALPHAVILLE - R2 / ALFA AEREA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353389872","cliente":"0044 - ORIGINAL MOGI","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353386293","cliente":"0203 - JSL RIO CLARO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353353717","cliente":"0060 - MOVIDA SN CARRAO","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353387596","cliente":"0457 - MOVIDA PATIO ATACADO SEMINOVOS ITAJAI SC","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353373340","cliente":"0106 - MOVIDA RAC INDAIATUBA","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353338838","cliente":"0162 - MOVIDA RAC SN CAMPINHO MADUREIRA (INTENDENTE MAGALHAES,566)","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353374577","cliente":"0414 - MOVIDA SEMINOVOS VALQUEIRE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353378372","cliente":"0223 - MOV RAC SHOPPING PATIO MIX RESENDE","frente":"Pausado","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"","status":"Pausado","tecnico":"","observacoes":""},{"codigo":"1353310594","cliente":"0253 - JSL PIRACICABA AUTO PIRA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"29/05/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353330759","cliente":"0058 - JSL SOBRADINHO/TRANSCEL","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"06/07/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353346795","cliente":"0456 - MOVIDA SEMINOVOS PRAIA GRANDE","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"03/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353348886","cliente":"0496 - MOVIDA RAC SOROCABA (VERA CRUZ) SP","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"06/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353350890","cliente":"1033152844 - JSL EMBU DAS ARTES","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"10/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353351110","cliente":"0474 - MOVIDA SEMINOVOS SOROCABA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"10/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353355240","cliente":"0078 - MOVIDA RAC SN LIMEIRA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"18/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353355346","cliente":"0130 - MOVIDA RAC JACAREI","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"18/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353363406","cliente":"0036 - MOVIDA SEMINOVOS CAMPINAS 1","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"31/08/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353366811","cliente":"0375 - CONCESSIONARIA PATIO","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"08/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353366974","cliente":"0138 - JSL PINHEIRINHO","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"08/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353369009","cliente":"0336 - VAMOS GARAGEM POÁ","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"11/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353370411","cliente":"0327 - RAC ASSAI ANA COSTA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"15/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353371094","cliente":"0363 - Toyota Caraguatatuba","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"16/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353374511","cliente":"0057 - TOYOTA TSERVICE GUARULHOS - VILA MIRIAM","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"24/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353376811","cliente":"0076 - ORIGINAL ARUJÁ","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"25/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353378105","cliente":"0074 - JSL MATRIZ","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"28/09/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353380543","cliente":"0492 - MOVIDA SEMINOVOS AMOREIRAS CAMPINAS","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"01/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353381162","cliente":"CFTV PAES DE BARROS - CFTV ESCRITORIO PAES DE BARROS","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"02/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353381253","cliente":"0466 - MOVIDA RAC PIRACICABA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"02/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353382212","cliente":"0416 - MOVIDA SN BUTANTA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"05/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353383749","cliente":"0281 - MOVIDA RAC/SN OSASCO AUTONOMISTA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"08/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353385473","cliente":"0660 - FORD RENAULT SONNERVIG VILA GUILHERME","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"13/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353385863","cliente":"0387 - ORIGINAL SN TAUBATE","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"13/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353385865","cliente":"0421 - ORIGINAL SÃO JOSÉ COLINAS - AQUARIUS","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"13/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353385873","cliente":"0083 - FIAT PONTO GUARULHOS","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"13/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353385889","cliente":"0378 - ORIGINAL SEMINOVOS CARAGUATATUBA -Rua Min. Dílson Funaro, 535","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"13/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353386371","cliente":"0361 - UAB T-DRIVE TOYOTA SJC","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"14/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353386578","cliente":"0077 - MOVIDA RAC BARUERI","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"14/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353372059","cliente":"0137 - MOVIDA SN VILA EMA","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"15/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388459","cliente":"0372 - CONCESSIONARIA FIAT/PEUGEOT/CITROEN","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"19/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388756","cliente":"0358 - UAB AR MOTORS HONDA SANTO ANDRE (PORTARIA REMOTA QR CODE/CADASTROS DIRETO NA FILIAL)-R1","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"19/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388967","cliente":"0362 - UAB T-DRIVE TOYOTA TAUBATE","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"20/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388975","cliente":"0487 - HONDA H-POINT- PINHEIROS","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"20/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388980","cliente":"0440 - TOYOTA T-DRIVE OSASCO","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"20/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353388984","cliente":"0462 - TOYOTA RADIAL LESTE","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"20/10/2026","status":"Agendado","tecnico":"","observacoes":""},{"codigo":"1353389657","cliente":"0388 - UAB MOTOR AR SBC","frente":"SP-Capital","tipoOs":"MANUTENÇÃO CORRETIVA","dataAgendamento":"21/10/2026","status":"Agendado","tecnico":"","observacoes":""}];
+
+/* ---------- LOGIN ---------- */
+async function entrar(){
+  const nome = document.getElementById("inpNome").value.trim();
+  const pin = document.getElementById("inpPin").value.trim();
+  const erro = document.getElementById("erroLogin");
+  if(!nome){ erro.textContent = "Digite seu nome."; return; }
+  erro.textContent = "Conectando…";
+  try{
+    const r = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({acao:"listar", pin})});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro || "Código inválido.");
+    sessao = {nome, pin};
+    localStorage.setItem(LS, JSON.stringify(sessao));
+    iniciarApp(j.registros);
+  }catch(e){
+    erro.textContent = e.message.includes("Failed to fetch") ? "Sem conexão com o servidor. Verifique sua internet." : e.message;
+  }
+}
+function sair(){ localStorage.removeItem(LS); location.reload(); }
+
+/* ---------- CARREGAR ---------- */
+async function carregar(silencioso){
+  try{
+    const r = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({acao:"listar", pin: sessao.pin})});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro);
+    dados = j.registros;
+    setStatus(true);
+    render();
+  }catch(e){
+    setStatus(false);
+    if(!silencioso) toast("⚠️ Não foi possível sincronizar. Tente atualizar.");
+  }
+}
+function setStatus(online){
+  const el = document.getElementById("statusSync");
+  const agora = new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  el.textContent = online ? "● Online — " + agora : "○ Sem conexão";
+  el.className = online ? "online" : "offline";
+}
+
+/* ---------- RENDER ---------- */
+function iniciarApp(registros){
+  dados = registros;
+  document.getElementById("telaLogin").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("tagUser").textContent = sessao.nome;
+  render();
+  setInterval(()=>carregar(true), 60000);
+  agendarRotacao();
+  setTimeout(()=>importarIniciais(true), 600);
+  document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) carregar(true); });
+}
+
+function render(){
+  document.getElementById("nav").innerHTML = [
+    ["dash","📊 Dashboard"],["equipes","👥 Por Equipe"],["lista","📋 Lista de OS"],["novo2","＋ Novo OS"]
+  ].map(([id,n])=>`<button class="${id===tabAtual?'ativo':''}" onclick="${id==='novo2'?'novoRegistro()':`tabAtual='${id}';render()`}">${n}</button>`).join("");
+  document.getElementById("main").innerHTML = tabAtual==="dash" ? renderDash() : tabAtual==="equipes" ? renderEquipes() : renderLista();
+}
+
+function stats(){
+  const porFrente={}, porStatus={}, porTipo={}, porMes={};
+  dados.forEach(r=>{
+    const t = r.tipoOs||"Sem tipo"; porTipo[t]=(porTipo[t]||0)+1;
+    const m = String(r.dataAgendamento||"").match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if(m){ const k = m[3]+"-"+m[2]; porMes[k]=(porMes[k]||0)+1; }
+    porFrente[r.frente||"Sem frente"]=(porFrente[r.frente||"Sem frente"]||0)+1;
+    porStatus[r.status||"—"]=(porStatus[r.status||"—"]||0)+1;
+  });
+  const st = k => porStatus[k]||0;
+  return {total: dados.length, porFrente, porStatus, porTipo, porMes,
+    ag: st("Agendado"), aguard: st("Aguardando Agendamento"), atend: st("Em Atendimento"), concl: st("Concluído"), canc: st("Cancelado"), paus: st("Pausado"), gar: st("Garantia")};
+}
+/* ---------- DASHBOARD ---------- */
+const TELAS_DASH = 3, INTERVALO_DASH = 30000;   // 3 telas, trocando a cada 30 segundos
+let telaDash = 0, rotPausada = false, rotInicio = Date.now(), rotTimer = null;
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const COR_STATUS = {"Aguardando Agendamento":"#F2C94C","Agendado":"#00D26A","Concluído":"#B9B9D9","Pausado":"#F2994A","Garantia":"#5FE0D6","Cancelado":"#FF6B7A"};
+const INDICADORES = [
+  ["Aguardando Agendamento","Aguardando Agendamento"],
+  ["Agendado","Agendadas"],
+  ["Concluído","Concluídas"],
+  ["Pausado","Pausadas (aguardando material/equip.)"],
+  ["Garantia","Em Garantia (instalação recente)"],
+  ["Cancelado","Canceladas"]
+];
+function agendarRotacao(){
+  clearTimeout(rotTimer); rotInicio = Date.now();
+  if(rotPausada) return;
+  rotTimer = setTimeout(()=>{ telaDash = (telaDash+1)%TELAS_DASH; if(tabAtual==="dash") render(); agendarRotacao(); }, INTERVALO_DASH);
+}
+function irTela(d){ telaDash = (telaDash+d+TELAS_DASH)%TELAS_DASH; agendarRotacao(); render(); }
+function alternarRotacao(){ rotPausada = !rotPausada; agendarRotacao(); render(); }
+function telaCheia(){ if(document.fullscreenElement) document.exitFullscreen(); else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+
+function itensDe(obj, ordem){
+  const l = Object.entries(obj).map(([k,n])=>({k, n, label:k}));
+  return ordem==="chave" ? l.sort((a,b)=>a.k.localeCompare(b.k)) : l.sort((a,b)=>b.n-a.n);
+}
+function barrasCard(titulo, itens, corFn){
+  if(!itens.length) return "";
+  const max = Math.max(...itens.map(i=>i.n));
+  return `<div class="card"><h3>${titulo}</h3>${itens.map(i=>`<div class="barra-linha"><span class="nome">${esc(i.label)}</span><span class="trilha"><span class="fill" style="width:${max?(i.n/max*100).toFixed(0):0}%${corFn?";background:"+corFn(i.k):""}"></span></span><span class="num">${i.n}</span></div>`).join("")}</div>`;
+}
+const corStatus = k => COR_STATUS[k] || "var(--verde)";
+
+function telaIndicadores(s){
+  const kpi = (l,v,c)=>`<div class="kpi"><div class="lbl">${l}</div><div class="val" style="color:${c}">${v}</div></div>`;
+  return `<div class="kpis">
+    ${kpi("Total de OS", s.total, "var(--verde2)")}
+    ${INDICADORES.map(([k,l])=>kpi(l, s.porStatus[k]||0, COR_STATUS[k])).join("")}
+  </div>
+  <div class="nota">ℹ️ Os dados são sincronizados automaticamente a cada minuto e a cada alteração salva. Toda a equipe vê as mesmas informações em tempo real.</div>`;
+}
+function telaFrenteStatus(s){
+  return barrasCard("📌 Chamados por frente / equipe", itensDe(s.porFrente)) +
+         barrasCard("📊 Chamados por status", itensDe(s.porStatus), corStatus);
+}
+function telaTipoMes(s){
+  const meses = itensDe(s.porMes,"chave").map(i=>{ const [a,m]=i.k.split("-"); return {...i, label: MESES[+m-1]+"/"+a}; });
+  return barrasCard("🧰 Chamados por tipo de OS", itensDe(s.porTipo)) +
+         barrasCard("📅 Agendamentos por mês", meses);
+}
+function renderDash(){
+  const s = stats();
+  const titulos = ["Indicadores gerais","Chamados por frente e por status","Tipos de OS e agendamentos por mês"];
+  const corpo = [telaIndicadores, telaFrenteStatus, telaTipoMes][telaDash](s);
+  const el = Math.min((Date.now()-rotInicio)/1000, INTERVALO_DASH/1000);
+  return `<div class="rot-bar">
+    <span class="rot-tit">Tela ${telaDash+1} de ${TELAS_DASH} · ${titulos[telaDash]}</span>
+    <div class="dots">${[0,1,2].map(i=>`<b class="${i===telaDash?'on':''}"></b>`).join("")}</div>
+    <div class="prog">${rotPausada?"":`<i style="animation-delay:-${el.toFixed(1)}s"></i>`}</div>
+    <button class="btn" onclick="irTela(-1)">◀</button>
+    <button class="btn" onclick="alternarRotacao()">${rotPausada?"▶ Retomar troca automática":"⏸ Pausar troca (30 s)"}</button>
+    <button class="btn" onclick="irTela(1)">▶</button>
+    <button class="btn" onclick="telaCheia()">⛶ Tela cheia</button>
+  </div>` + corpo;
+}
+
+function renderEquipes(){
+  const m = {};
+  dados.forEach(r=>{ const f=r.frente||"Sem frente"; const o=m[f]||(m[f]={total:0,st:{}}); o.total++; o.st[r.status]=(o.st[r.status]||0)+1; });
+  const eq = Object.entries(m).sort((a,b)=>b[1].total-a[1].total);
+  if(!eq.length) return `<div class="card">Nenhum chamado cadastrado.</div>`;
+  const maxT = eq[0][1].total;
+  const stack = (o,base)=>INDICADORES.map(([k,l])=>{
+    const n = o.st[k]||0; if(!n) return "";
+    const w = n/base*100;
+    return `<span style="width:${w.toFixed(2)}%;background:${COR_STATUS[k]}" title="${l}: ${n}">${w>=5?n:""}</span>`;
+  }).join("");
+  const legenda = INDICADORES.map(([k,l])=>`<span><i style="background:${COR_STATUS[k]}"></i>${l}</span>`).join("");
+  return `<div class="card"><h3>👥 Status por equipe</h3>
+    <div class="legenda">${legenda}</div>
+    ${eq.map(([f,o])=>`<div class="barra-linha"><span class="nome">${esc(f)}</span><div class="stack">${stack(o,maxT)}</div><span class="num">${o.total}</span></div>`).join("")}
+  </div>
+  <div class="equipes-grid">
+  ${eq.map(([f,o])=>{
+    const soma = INDICADORES.reduce((a,[k])=>a+(o.st[k]||0),0);
+    const outros = o.total - soma;
+    return `<div class="card eq-card">
+      <div class="eq-topo"><h3>${esc(f)}</h3><div class="eq-total">${o.total}<small> OS</small></div></div>
+      <div class="mini-kpis">${INDICADORES.map(([k,l])=>`<div class="mini"><div class="l">${l}</div><div class="v" style="color:${COR_STATUS[k]}">${o.st[k]||0}</div></div>`).join("")}</div>
+      <div class="stack" style="margin-top:12px">${stack(o,o.total)}</div>
+      ${outros>0?`<div style="font-size:11px;color:var(--texto2);margin-top:8px">Outros status: ${outros}</div>`:""}
+    </div>`;
+  }).join("")}
+  </div>`;
+}
+
+function filtrar(){
+  const q = norm(filtros.q);
+  return dados.filter(r=>{
+    if(filtros.frente && r.frente!==filtros.frente) return false;
+    if(filtros.status && r.status!==filtros.status) return false;
+    if(q){
+      const alvo = norm([r.codigo,r.cliente,r.tecnico,r.agendadoPor,r.dataAgendamento,r.observacoes,r.status,r.frente].join(" "));
+      const termos = q.split(/\s+/).filter(Boolean);
+      if(!termos.every(t=>alvo.includes(t))) return false;
+    }
+    return true;
+  });
+}
+
+function renderLista(){
+  const lista = filtrar();
+  const totalPag = Math.max(1, Math.ceil(lista.length/PS));
+  if(pag>totalPag) pag = totalPag;
+  const pg = lista.slice((pag-1)*PS, pag*PS);
+  let p = "";
+  for(let i=1;i<=totalPag;i++){
+    if(totalPag>12 && i>3 && i<totalPag-1 && Math.abs(i-pag)>1){ if(i===4) p+=" …"; continue; }
+    p += `<button class="${i===pag?'ativo':''}" onclick="pag=${i};render()">${i}</button>`;
+  }
+  return `
+  <div class="filtros">
+    <input placeholder="🔍 Buscar por código, cliente, técnico..." value="${esc(filtros.q)}" oninput="filtros.q=this.value;pag=1;render()">
+    <select onchange="filtros.frente=this.value;pag=1;render()"><option value="">Todas as frentes</option>${FRENTES.map(f=>`<option ${f===filtros.frente?'selected':''}>${esc(f)}</option>`).join("")}</select>
+    <select onchange="filtros.status=this.value;pag=1;render()"><option value="">Todos os status</option>${STATUS.map(s=>`<option ${s===filtros.status?'selected':''}>${esc(s)}</option>`).join("")}</select>
+    <span class="contador">${lista.length} OS</span>
+  </div>
+  <div class="tbl-acao">
+    <button class="btn btn-p" onclick="novoRegistro()">＋ Nova OS</button>
+    <button class="btn" onclick="exportarExcel()">⬇ Excel (visão filtrada)</button>
+    <button class="btn" onclick="relatorioPDF()">🖨 PDF (relatório)</button>
+  </div>
+  <div style="overflow-x:auto; max-height:70vh">
+  <table>
+    <thead><tr><th>Código</th><th>Cliente</th><th>Frente</th><th>Tipo OS</th><th>Data Agend.</th><th>Status</th><th>Técnico</th><th>Agendado por</th><th>Última edição</th><th></th></tr></thead>
+    <tbody>
+    ${pg.map(r=>{
+      const i = dados.indexOf(r);
+      const atualizada = r.updated_date ? new Date(r.updated_date).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "";
+      return `<tr>
+        <td class="mono" style="font-family:Consolas,monospace;color:var(--azul)">${esc(r.codigo)}</td>
+        <td style="max-width:250px"><b>${esc(r.cliente)}</b>${r.observacoes?`<div class="edit-info">${esc(r.observacoes)}</div>`:""}</td>
+        <td>${esc(r.frente)}</td>
+        <td style="font-size:11px">${esc(r.tipoOs)}</td>
+        <td>${esc(r.dataAgendamento)}</td>
+        <td><span class="pill ${CLASSE_STATUS[r.status]||'p-ag'}">${esc(r.status||"—")}</span></td>
+        <td>${esc(r.tecnico)}</td>
+        <td>${esc(r.agendadoPor)}</td>
+        <td class="edit-info">${r.ultimoEditor?`<b>${esc(r.ultimoEditor)}</b> ${atualizada}`:atualizada}</td>
+        <td style="white-space:nowrap">
+          <button class="btn" style="padding:5px 9px;font-size:11px" onclick="editarRegistro('${r.id}')">✎</button>
+          <button class="btn btn-d" style="padding:5px 9px;font-size:11px" onclick="excluirRegistro('${r.id}')">✕</button>
+        </td></tr>`;
+    }).join("") || `<tr><td colspan="10" style="text-align:center;color:var(--texto2);padding:24px">Nenhuma OS encontrada com os filtros atuais.</td></tr>`}
+    </tbody>
+  </table>
+  </div>
+  <div class="pag">${p}</div>`;
+}
+
+/* ---------- CRUD ---------- */
+function novoRegistro(){ abrirForm(null); }
+function editarRegistro(id){ const r = dados.find(x=>x.id===id); if(r) abrirForm(r); }
+function abrirForm(r){
+  const e = r || {};
+  document.getElementById("modalCorpo").innerHTML = `
+  <h3>${r?"Editar OS "+esc(r.codigo):"Nova Ordem de Serviço"}</h3>
+  <div class="form-grid">
+    <div><label>Código da OS *</label><input id="f_codigo" value="${esc(e.codigo||"")}" ${r?"":"placeholder='Ex.: 1353386446'"}></div>
+    <div><label>Frente / equipe</label><select id="f_frente">${opcoes(FRENTES, e.frente)}</select></div>
+    <div class="full"><label>Cliente / unidade *</label><input id="f_cliente" value="${esc(e.cliente||"")}" placeholder="Ex.: 0246 - MOVIDA RAC BLUMENAU -SC"></div>
+    <div><label>Tipo de OS</label><select id="f_tipoOs">${opcoes(TIPOS_OS, e.tipoOs)}</select></div>
+    <div><label>Data do agendamento</label><input id="f_data" value="${esc(e.dataAgendamento||"")}" placeholder="Ex.: 20/10/2026 às 14:00"></div>
+    <div><label>Status</label><select id="f_status">${opcoes(STATUS, e.status)}</select></div>
+    <div><label>Técnico</label><input id="f_tecnico" value="${esc(e.tecnico||"")}"></div>
+    <div class="full"><label>Agendado por</label><input id="f_agendadoPor" value="${esc(e.agendadoPor||sessao.nome)}"></div>
+    <div class="full"><label>Observações</label><textarea id="f_obs" rows="3">${esc(e.observacoes||"")}</textarea></div>
+  </div>
+  <div class="rodape">
+    ${r?`<button class="btn btn-d" onclick="excluirRegistro('${r.id}',true)">Excluir</button>`:""}
+    <button class="btn" onclick="fecharModal()">Cancelar</button>
+    <button class="btn btn-p" onclick="salvarForm(${r?`'${r.id}'`:"null"})">💾 Salvar e sincronizar</button>
+  </div>`;
+  document.getElementById("modalFundo").style.display = "flex";
+}
+function opcoes(lista, atual){
+  const l = (atual && !lista.includes(atual)) ? [...lista, atual] : lista;
+  return l.map(v=>`<option ${v===atual?'selected':''}>${esc(v)}</option>`).join("");
+}
+function fecharModal(){ document.getElementById("modalFundo").style.display = "none"; }
+
+async function salvarForm(id){
+  const d = {
+    id, codigo: document.getElementById("f_codigo").value.trim(),
+    cliente: document.getElementById("f_cliente").value.trim(),
+    frente: document.getElementById("f_frente").value,
+    tipoOs: document.getElementById("f_tipoOs").value,
+    dataAgendamento: document.getElementById("f_data").value.trim(),
+    status: document.getElementById("f_status").value,
+    tecnico: document.getElementById("f_tecnico").value.trim(),
+    agendadoPor: document.getElementById("f_agendadoPor").value.trim(),
+    observacoes: document.getElementById("f_obs").value.trim(),
+    ultimoEditor: sessao.nome,
+  };
+  if(!d.codigo || !d.cliente){ toast("⚠️ Código e Cliente são obrigatórios."); return; }
+  try{
+    const r = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({acao:"salvar", pin: sessao.pin, dados: d})});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro);
+    fecharModal();
+    await carregar(true);
+    toast("✓ Salvo e sincronizado com a equipe");
+  }catch(e){ toast("⚠️ Erro ao salvar: " + e.message); }
+}
+
+async function excluirRegistro(id, doModal){
+  if(!confirm("Excluir esta OS do banco compartilhado?")) return;
+  try{
+    const r = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({acao:"excluir", pin: sessao.pin, id})});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.erro);
+    if(doModal) fecharModal();
+    await carregar(true);
+    toast("✓ Excluído");
+  }catch(e){ toast("⚠️ Erro ao excluir: " + e.message); }
+}
+
+/* ---------- IMPORTAÇÃO ---------- */
+async function migrarStatus(){
+  const FLAG = "os_migr_status_v2";
+  try{ if(localStorage.getItem(FLAG)) return; }catch(e){}
+  const REGRAS = {"Garantia":{para:"Garantia", de:["Aguardando Agendamento","Pausado"]}, "SP-Capital":{para:"Agendado", de:["Pausado"]}};
+  const alvo = [];
+  DADOS_INICIAIS.forEach(d=>{
+    const rg = REGRAS[d.frente]; if(!rg) return;
+    const ex = dados.find(r=>String(r.codigo||"").trim()===d.codigo && r.frente===d.frente && rg.de.includes(r.status));
+    if(ex) alvo.push({r:ex, para:rg.para});
+  });
+  let falhas = 0;
+  for(let i=0; i<alvo.length; i+=5){
+    await Promise.all(alvo.slice(i,i+5).map(async ({r,para})=>{
+      try{
+        const dd = {id:r.id, codigo:r.codigo, cliente:r.cliente, frente:r.frente, tipoOs:r.tipoOs, dataAgendamento:r.dataAgendamento||"",
+          status:para, tecnico:r.tecnico||"", agendadoPor:r.agendadoPor||"", observacoes:r.observacoes||"", ultimoEditor:sessao.nome};
+        const res = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({acao:"salvar", pin:sessao.pin, dados:dd})});
+        const j = await res.json(); if(!j.ok) throw new Error(j.erro);
+      }catch(e){ falhas++; }
+    }));
+  }
+  if(!falhas){ try{ localStorage.setItem(FLAG,"1"); }catch(e){} }
+  if(alvo.length) await carregar(true);
+}
+function pendentesImport(){
+  const existentes = new Set(dados.map(r=>String(r.codigo||"").trim()));
+  return DADOS_INICIAIS.filter(d=>!existentes.has(d.codigo));
+}
+async function importarIniciais(auto){ // roda sozinho ao entrar; não há botão na tela
+  if(importando) return;
+  importando = true;
+  try{
+    await carregar(true);               // atualiza a lista antes, para não duplicar
+    await migrarStatus();
+    const novos = pendentesImport();
+    if(!novos.length){ if(!auto) toast("ℹ️ Todas as OS da planilha já estão no sistema."); return; }
+    if(!auto && !confirm(`Importar ${novos.length} OS para o banco compartilhado da equipe?`)) return;
+    let ok = 0, falhas = 0, primeiroErro = "";
+    for(let i=0; i<novos.length; i+=5){
+      await Promise.all(novos.slice(i,i+5).map(async d=>{
+        try{
+          const r = await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({acao:"salvar", pin: sessao.pin, dados: {...d, id:null, ultimoEditor: sessao.nome}})});
+          const j = await r.json();
+          if(!j.ok) throw new Error(j.erro || "resposta sem ok");
+          ok++;
+        }catch(e){ falhas++; if(!primeiroErro) primeiroErro = e.message; }
+      }));
+      toast(`Importando planilha… ${ok+falhas}/${novos.length}`);
+    }
+    await carregar(true);
+    if(falhas) alert(`Importação: ${ok} OS gravadas, ${falhas} com erro.\nMotivo do primeiro erro: ${primeiroErro}\n\nClique em "Importar dados da planilha" para repetir só as que faltam.`);
+    else toast(`✓ ${ok} OS da planilha importadas`);
+  } finally { importando = false; render(); }
+}
+
+/* ---------- RELATÓRIOS ---------- */
+function exportarExcel(){
+  const lista = filtrar();
+  const linhas = lista.map(r=>({
+    "Código": r.codigo, "Cliente": r.cliente, "Frente": r.frente, "Tipo OS": r.tipoOs,
+    "Data Agendamento": r.dataAgendamento, "Status": r.status, "Técnico": r.tecnico,
+    "Agendado por": r.agendadoPor, "Observações": r.observacoes,
+    "Última edição": (r.ultimoEditor? r.ultimoEditor+" em ":"") + (r.updated_date? new Date(r.updated_date).toLocaleString("pt-BR") : ""),
+  }));
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Agendamentos OS");
+  XLSX.writeFile(wb, "Agendamentos_OS_PrudenteSeg_SIMPAR.xlsx");
+}
+function relatorioPDF(){
+  const lista = filtrar();
+  const agora = new Date().toLocaleString("pt-BR");
+  const w = window.open("", "_blank");
+  const totalPorStatus = {};
+  lista.forEach(r=>totalPorStatus[r.status]=(totalPorStatus[r.status]||0)+1);
+  w.document.write(`
+  <html><head><title>Relatório de Agendamentos de OS</title><style>
+    body{font-family:'Segoe UI',Arial,sans-serif; color:#1a2033; margin:24px;}
+    h1{font-size:16px; color:#0066B3;} .sub{font-size:11px; color:#68708A; margin-bottom:4px;}
+    .resumo{background:#F2F6FB; border:1px solid #DCE5F0; border-radius:8px; padding:10px 14px; font-size:12px; margin:14px 0;}
+    table{width:100%; border-collapse:collapse; font-size:10.5px;}
+    th{background:#00427A; color:#fff; padding:7px 6px; text-align:left;}
+    td{border-bottom:1px solid #E2E7F0; padding:6px; vertical-align:top;}
+    tr:nth-child(even){background:#FAFBFE;}
+  </style></head><body>
+  <h1>RELATÓRIO — AGENDAMENTOS DE ORDENS DE SERVIÇO</h1>
+  <div class="sub">Prudente Seg Soluções • SIMPAR</div>
+  <div class="sub">Gerado por ${esc(sessao.nome)} em ${agora} • ${lista.length} OS listadas</div>
+  <div class="resumo"><b>Resumo:</b> ${Object.entries(totalPorStatus).map(([s,n])=>`${esc(s)}: ${n}`).join(" &nbsp;•&nbsp; ") || "—"}</div>
+  <table><thead><tr><th>Código</th><th>Cliente</th><th>Frente</th><th>Data</th><th>Status</th><th>Técnico</th><th>Agendado por</th><th>Última edição</th></tr></thead>
+  <tbody>${lista.map(r=>`<tr>
+    <td>${esc(r.codigo)}</td><td><b>${esc(r.cliente)}</b></td><td>${esc(r.frente)}</td>
+    <td>${esc(r.dataAgendamento)}</td><td>${esc(r.status)}</td><td>${esc(r.tecnico)}</td>
+    <td>${esc(r.agendadoPor)}</td><td>${esc((r.ultimoEditor?r.ultimoEditor+" ":"")+(r.updated_date?new Date(r.updated_date).toLocaleString("pt-BR"):""))}</td>
+  </tr>`).join("")}</tbody></table>
+  <script>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+/* ---------- INICIALIZAÇÃO ---------- */
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") fecharModal(); });
+(function(){
+  const s = localStorage.getItem(LS);
+  if(s){ try{ const j = JSON.parse(s); if(j.nome && j.pin){ sessao = j; document.getElementById("inpNome").value = j.nome; document.getElementById("inpPin").value = j.pin; entrar(); } }catch(e){} }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+# Project type [web_app, test_runner]
+project_type: web_app
+
+# Default profile, Tizen API version
+profile: tizen
+api_version: "10.0"
+
+# Build type [Debug/ Release/ Test]
+build_type: Debug
+
+# Output name for application
+output_name: system OS
+
+# Output path for build
+output_path: ""
+
+# Enable size optimization of wgt for web workspace
+opt: false
+
+# Signing profile to be used for Tizen package signing
+# If value is empty: "", active signing profile will be used
+# Else If value is ".", default signing profile will be used
+signing_profile: ""
+
+# list of certs in web project (.trust-anchor)
+trust_anchor: []
+
+# list of files in web project (.html,.css etc) and resources
+files:
+  - .git/COMMIT_EDITMSG
+  - .git/HEAD
+  - .git/config
+  - .git/description
+  - .git/hooks/applypatch-msg.sample
+  - .git/hooks/commit-msg.sample
+  - .git/hooks/fsmonitor-watchman.sample
+  - .git/hooks/post-update.sample
+  - .git/hooks/pre-applypatch.sample
+  - .git/hooks/pre-commit.sample
+  - .git/hooks/pre-merge-commit.sample
+  - .git/hooks/pre-push.sample
+  - .git/hooks/pre-rebase.sample
+  - .git/hooks/pre-receive.sample
+  - .git/hooks/prepare-commit-msg.sample
+  - .git/hooks/push-to-checkout.sample
+  - .git/hooks/sendemail-validate.sample
+  - .git/hooks/update.sample
+  - .git/index
+  - .git/info/exclude
+  - .git/logs/HEAD
+  - .git/logs/refs/heads/main
+  - .git/logs/refs/remotes/origin/main
+  - .git/objects/0e/7fd3e687a4d85d125c5af7e19e87536c29ea63
+  - .git/objects/3e/959dfd9a0ecfbe48a45a2577a86768ec374543
+  - .git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904
+  - .git/objects/ee/710a5f00d824d9a90c0b4eb3483911577983ce
+  - .git/refs/heads/main
+  - .git/refs/remotes/origin/main
+  - .vscode/settings.json
+  - index.html
+
+# list of files to exclude based on the matched patterns
+excludes:
+  - Build/*
+  - Debug/*
+  - Directory.Build.targets
+  - Release/*
+  - Test/*
+  - \.Build/.*
+  - \.buildResult/.*
+  - \.csproj
+  - \.externalToolBuilders/.*
+  - \.gn
+  - \.obj/.*
+  - \.package/.*
+  - \.project
+  - \.rds_delta
+  - \.sdk_delta.info
+  - \.settings/.*
+  - \.sign/.*
+  - \.tizen-ui-builder-tool.xml
+  - \.tproject
+  - \.wgt
+  - tizen_web_project.yaml
+  - webUnitTest/*
+
+# project dependencies
+deps: []
+

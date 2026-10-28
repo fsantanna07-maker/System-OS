@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://theapp.com/systemos" version="1.0.0" viewmodes="maximized">
+    <tizen:application id="AB12345678.systemos" package="AB12345678" required_version="6.0"/>
+    <content src="index.html"/>
+    <name>system OS</name>
+    <tizen:profile name="tv-common"/>
+    <tizen:profile name="tv-samsung"/>
+</widget>

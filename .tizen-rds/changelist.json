@@ -1,0 +1,191 @@
+{
+  "projectDir": "c:\\system OS",
+  "deploys": {
+    "next": [
+      {
+        "path": "Debug/projects/system OS/.vscode/settings.json",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-receive.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/info/exclude",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/HEAD",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs/heads/main",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs/remotes/origin/main",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects/0e/7fd3e687a4d85d125c5af7e19e87536c29ea63",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects/3e/959dfd9a0ecfbe48a45a2577a86768ec374543",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects/ee/710a5f00d824d9a90c0b4eb3483911577983ce",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs/heads/main",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs/remotes/origin/main",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/info",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects",
+        "type": "delete"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.vscode",
+        "type": "delete"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks",
+        "type": "delete"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/objects/3e",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git",
+        "type": "delete"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs/heads",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs/remotes",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/refs/remotes/origin",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/index",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs/heads",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs/remotes",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/logs/refs/remotes/origin",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/config.xml",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/index.html",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-applypatch.sample",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/prepare-commit-msg.sample",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/push-to-checkout.sample",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-rebase.sample",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/sendemail-validate.sample",
+        "type": "modify"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/update.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/config",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/description",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/HEAD",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/applypatch-msg.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/commit-msg.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/fsmonitor-watchman.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/post-update.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-commit.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-merge-commit.sample",
+        "type": "add"
+      },
+      {
+        "path": "Debug/projects/system OS/.git/hooks/pre-push.sample",
+        "type": "add"
+      }
+    ]
+  }
+}
