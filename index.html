@@ -73,10 +73,18 @@ main{padding:20px; max-width:1480px; margin:0 auto;}
 .mini{background:var(--painel2); border-radius:8px; padding:8px 10px;}
 .mini .l{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--texto2); min-height:24px;}
 .mini .v{font-size:22px; font-weight:700; margin-top:2px;}
+.tbl-eq{width:100%; border-collapse:collapse;}
+.tbl-eq th{font-size:10px; line-height:1.25; vertical-align:bottom; padding:6px 8px; text-align:center; background:none; border-bottom:2px solid var(--borda); white-space:normal;}
+.tbl-eq th:first-child{text-align:left;}
+.tbl-eq td{padding:10px 8px; text-align:center; font-size:22px; font-weight:700; border-bottom:1px solid var(--borda); vertical-align:middle;}
+.tbl-eq td.eqn{text-align:left; font-size:14px; color:var(--texto);}
+.tbl-eq td.dist{width:24%; padding:10px 8px;}
+.tbl-eq td.dist .stack{height:20px;}
+.tbl-eq tr.totalg td{border-bottom:none; border-top:2px solid var(--borda); background:var(--painel2);}
 .rot-bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
 .rot-tit{font-size:12.5px; font-weight:700; color:var(--texto);}
 .prog{flex:1; min-width:120px; height:4px; background:var(--painel2); border-radius:2px; overflow:hidden;}
-.prog i{display:block; height:100%; width:0; background:var(--verde); animation:prog 30s linear forwards;}
+.prog i{display:block; height:100%; width:0; background:var(--verde); animation:prog 15s linear forwards;}
 @keyframes prog{to{width:100%;}}
 .dots{display:flex; gap:6px;}
 .dots b{width:9px; height:9px; border-radius:50%; background:var(--painel2); border:1px solid var(--borda);}
@@ -251,7 +259,7 @@ function stats(){
     ag: st("Agendado"), aguard: st("Aguardando Agendamento"), atend: st("Em Atendimento"), concl: st("Concluído"), canc: st("Cancelado"), paus: st("Pausado"), gar: st("Garantia")};
 }
 /* ---------- DASHBOARD ---------- */
-const TELAS_DASH = 3, INTERVALO_DASH = 30000;   // 3 telas, trocando a cada 30 segundos
+const TELAS_DASH = 4, INTERVALO_DASH = 15000;   // 4 telas em looping, trocando a cada 15 segundos
 let telaDash = 0, rotPausada = false, rotInicio = Date.now(), rotTimer = null;
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const COR_STATUS = {"Aguardando Agendamento":"#F2C94C","Agendado":"#00D26A","Concluído":"#B9B9D9","Pausado":"#F2994A","Garantia":"#5FE0D6","Cancelado":"#FF6B7A"};
@@ -302,20 +310,38 @@ function telaTipoMes(s){
 }
 function renderDash(){
   const s = stats();
-  const titulos = ["Indicadores gerais","Chamados por frente e por status","Tipos de OS e agendamentos por mês"];
-  const corpo = [telaIndicadores, telaFrenteStatus, telaTipoMes][telaDash](s);
+  const titulos = ["Indicadores gerais","Chamados por frente e por status","Tipos de OS e agendamentos por mês","Indicadores por equipe"];
+  const corpo = [telaIndicadores, telaFrenteStatus, telaTipoMes, telaEquipesCompacta][telaDash](s);
   const el = Math.min((Date.now()-rotInicio)/1000, INTERVALO_DASH/1000);
   return `<div class="rot-bar">
     <span class="rot-tit">Tela ${telaDash+1} de ${TELAS_DASH} · ${titulos[telaDash]}</span>
-    <div class="dots">${[0,1,2].map(i=>`<b class="${i===telaDash?'on':''}"></b>`).join("")}</div>
-    <div class="prog">${rotPausada?"":`<i style="animation-delay:-${el.toFixed(1)}s"></i>`}</div>
+    <div class="dots">${[0,1,2,3].map(i=>`<b class="${i===telaDash?'on':''}"></b>`).join("")}</div>
+    <div class="prog">${rotPausada?"":`<i style="animation-duration:${INTERVALO_DASH/1000}s;animation-delay:-${el.toFixed(1)}s"></i>`}</div>
     <button class="btn" onclick="irTela(-1)">◀</button>
-    <button class="btn" onclick="alternarRotacao()">${rotPausada?"▶ Retomar troca automática":"⏸ Pausar troca (30 s)"}</button>
+    <button class="btn" onclick="alternarRotacao()">${rotPausada?"▶ Retomar troca automática":`⏸ Pausar troca (${INTERVALO_DASH/1000} s)`}</button>
     <button class="btn" onclick="irTela(1)">▶</button>
     <button class="btn" onclick="telaCheia()">⛶ Tela cheia</button>
   </div>` + corpo;
 }
 
+function telaEquipesCompacta(){
+  const m = {};
+  dados.forEach(r=>{ const f=r.frente||"Sem frente"; const o=m[f]||(m[f]={total:0,st:{}}); o.total++; o.st[r.status]=(o.st[r.status]||0)+1; });
+  const eq = Object.entries(m).sort((a,b)=>b[1].total-a[1].total);
+  if(!eq.length) return `<div class="card">Nenhum chamado cadastrado.</div>`;
+  const stack = o=>INDICADORES.map(([k,l])=>{
+    const n=o.st[k]||0; if(!n) return "";
+    const w=n/o.total*100;
+    return `<span style="width:${w.toFixed(2)}%;background:${COR_STATUS[k]}" title="${l}: ${n}">${w>=8?n:""}</span>`;
+  }).join("");
+  const tot = {total:0, st:{}};
+  eq.forEach(([f,o])=>{ tot.total+=o.total; Object.entries(o.st).forEach(([k,n])=>tot.st[k]=(tot.st[k]||0)+n); });
+  const linha = (nome,o,cls)=>`<tr${cls?` class="${cls}"`:""}><td class="eqn">${esc(nome)}</td><td style="color:var(--verde2)">${o.total}</td>${INDICADORES.map(([k])=>`<td style="color:${COR_STATUS[k]}">${o.st[k]||0}</td>`).join("")}<td class="dist"><div class="stack">${stack(o)}</div></td></tr>`;
+  return `<div class="card" style="margin-top:0"><h3>👥 Indicadores por equipe</h3>
+    <table class="tbl-eq"><thead><tr><th>Equipe</th><th style="color:var(--verde2)">Total</th>${INDICADORES.map(([k,l])=>`<th style="color:${COR_STATUS[k]};border-bottom-color:${COR_STATUS[k]}">${l}</th>`).join("")}<th>Distribuição</th></tr></thead>
+    <tbody>${eq.map(([f,o])=>linha(f,o)).join("")}${linha("Total geral",tot,"totalg")}</tbody></table>
+  </div>`;
+}
 function renderEquipes(){
   const m = {};
   dados.forEach(r=>{ const f=r.frente||"Sem frente"; const o=m[f]||(m[f]={total:0,st:{}}); o.total++; o.st[r.status]=(o.st[r.status]||0)+1; });
